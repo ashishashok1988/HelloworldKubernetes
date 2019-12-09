@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworldspring-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: helloworldspring
+  template:
+    metadata:
+      labels:
+        app: helloworldspring
+    spec:
+      containers:
+        - name: helloworldspring-container
+          image: helloworldspring:3.0
+          ports:
+          - name: hwspring-port
+            containerPort: 8080
+          env:
+          - name: GREETING_MSG
+            valueFrom:
+              configMapKeyRef:
+                # The ConfigMap containing the value you want to assign to SPECIAL_LEVEL_KEY
+                name: helloworld-config-env
+                # Specify the key associated with the value
+                key: greeting.message.env
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloworldspring-service
+  namespace: default
+spec: 
+  type: NodePort
+  selector:
+    app: helloworldspring
+  ports:
+  - port: 8080
+    targetPort: hwspring-port
+    nodePort: 30001
+
+# kubectl exec helloworldspring-deployment-7f9bddd955-2hhq4 -it -- /bin/bash
